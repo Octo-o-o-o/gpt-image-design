@@ -1,0 +1,65 @@
+---
+name: pro-design
+description: 用 ChatGPT Pro 网页会话或 OpenAI 兼容生图 API 生成设计图与前端代码/HTML demo，产物保存在本地设计面板；只在用户明确要求设计、出图或 demo 时使用。
+argument-hint: <设计目标>
+display-name: GPT-Image Design
+short-description: Generate images and frontend demos through a web session or image API
+---
+
+# GPT-Image Design
+
+只在用户明确说「出几张设计图 / 做个前端 demo / 让 ChatGPT 设计」或同意你的提议时启动。纯后端实现、需要跑代码验证的任务不要用。
+
+web 通道与研究插件共用同一个**本机 Chrome profile 和单账号**；一轮只在一个会话里提交，不做多账号并行，也不合并多份答复。
+
+## 启动：先给设计卡
+
+设计卡必须包含：
+
+1. 目标与目标用户；
+2. **成功判据**，例如「至少 1 张完整首屏图」「一个可打开的单文件 HTML demo」「与现有品牌/代码不冲突」；
+3. 材料（现有设计、品牌、代码路径）与 brief；
+4. 轮次上限、本轮方向/图片数（默认 3）与产物位置；
+5. 当前通道（web / api）与模型；API 通道要写明「只出图，不出 HTML demo」。
+
+调用 `gpt_image_design`：`action=start, confirmed=true, title, question, brief, criteria[], materials[], rounds, designs`。
+
+`designs` 是**本轮方向/图片数**（1–6，默认取设置里的 3）；`rounds` 是追问轮数。两者都写在卡片上让用户确认。
+
+brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的点、是否要 HTML demo。不要只说「设计好看点」。
+
+## 通道差异
+
+- **web**：一轮一次提交，图片与 HTML/代码块一起回来。
+- **api**：每个方向一次生图请求（`designs` 次），只出图片；需要 demo 时由你基于图片和 brief 另行写 HTML，并说明不是模型产出。
+- api 通道未配置自动裁决时默认只跑 1 轮；用户要求多轮才显式传 `rounds`，并提醒按 API 计费。
+- key 只读设置或 `GPT_IMAGE_API_KEY`，不要在会话里回显；`action=probe` 可检查 base URL、key 与模型名。
+
+## 运行期间
+
+发出去后不逐轮汇报。生成图片通常需要 1–3 分钟；卡住时看 `stall_reason`，`unknown_submission` 必须人工核对。api 通道的 `config` 表示 key/base URL/模型名或请求参数被拒，修设置后 `resume`；DSH 重启会丢掉进行中的 API 请求，这一轮不会自动重发。
+
+## 产物与裁决
+
+- 图片由传输层抓取或下载，保存到 `<主题>/artifacts/round-NN/image-01.png`；
+- web 通道的前端代码块保存为 `code-01.html`/`.tsx` 等，HTML 可以直接在设计面板的 iframe 里预览；
+- api 通道没有代码块；需要 demo 时由你另写，并在交付说明里标明来源；
+- 面板「Image Design」按项目列出主题，详情是画廊 + demo 预览 + 设计决策。
+
+答复/结果回来后由宿主裁决：
+
+1. 逐张检查图片是否满足判据（文案、比例、方向）；
+2. 有 HTML demo 时打开核实能渲染，记录依赖/外链；
+3. 选方向、写理由，未采纳项保留驳回依据；
+4. 交付 `design.md`，引用实际产物路径，不把模型原文当交付物。
+
+## 追问
+
+`gpt_image_design(action="continue", topic_id=..., brief="只改配色，保留版式", materials=[...], confirmed=true)`。
+web 通道在同一会话里只上传新增材料，会话失效会自动回退整份清单；api 通道每轮重新发提示词，参考图按当轮材料重新附加。
+
+## 边界
+
+- 不自动 push、不改仓库代码；demo 只是产物，实施另行授权。
+- 图片和代码会写入项目记录；公开仓库注意版权与素材授权。
+- web 通道的页面改版、账号风险与 ToS 风险随任务说明；api 通道按服务商条款与 API 计费。

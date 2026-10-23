@@ -1,0 +1,290 @@
+# GPT-Image Design
+
+在 DeepSeek Harness（DSH）里，用真实的 ChatGPT Pro 网页会话，或任意 OpenAI 兼容生图 API，出设计图与单文件 HTML demo；图片和代码保存到本地，侧边栏画廊预览，iframe 直接打开 demo。
+
+[![dsh.pub](https://dsh.pub/api/badges/Octo-o-o-o/gpt-image-design.svg)](https://dsh.pub/zh/plugins/gpt-image-design/)
+[![npm](https://img.shields.io/npm/v/gpt-image-design.svg)](https://www.npmjs.com/package/gpt-image-design)
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.2-4c1)
+
+> English: Generate images and HTML demos through a real ChatGPT Pro web session or an OpenAI-compatible image API, saved locally with a gallery in DSH.
+
+> **风险提示**：`web` 通道是订阅网页自动化，不是官方 API；页面改版、账号风控与 ToS 风险由使用者承担。`api` 通道按服务商条款计费，只产出图片，不产出 HTML demo。
+
+## 两种通道
+
+| 通道 | 适合 | 产出 |
+|---|---|---|
+| `web`（默认） | 有 ChatGPT 订阅，想顺带生成 HTML demo | 图片 + 前端代码/HTML demo |
+| `api` | 没有订阅，或想用 `gpt-image-1` 等 API 的质量/尺寸/参考图控制 | 只有图片；HTML demo 由 agent 另行生成 |
+
+## 它解决什么问题
+
+- 一句话生成多个方向的设计图，并把每轮结果按主题和轮次落盘。
+- 侧边栏「Image Design」提供画廊、demo iframe 预览和设计决策记录。
+- 材料里的图片可以作为参考图（`api` 通道走 `/images/edits`），最多 4 张、每张 25MB。
+- 适合落地页/海报/UI 方向探索；不适合需要像素级精确排版、或必须使用特定品牌规范自动校验的场景。
+
+## 前置条件
+
+- DSH `>= 0.2.1-rc.2 < 0.3.0`（本版本实测 `0.2.1-rc.2`）。
+- Node.js 22+（DSH 自带 runtime 也可以）。
+- `web` 通道：本机 Google Chrome + 可登录 ChatGPT 网页的账号；首次登录必须有人工操作。
+- `api` 通道：一个 OpenAI 兼容的生图服务、base URL、key 和模型名。
+- `web` 通道固定单账号、单会话，与研究插件共用同一个 Chrome profile。
+
+## 安装
+
+### 从 dsh.pub（推荐）
+
+```bash
+npx dshpub add Octo-o-o-o/gpt-image-design
+```
+
+dsh.pub 会把仓库固定到一个公开 commit 再安装。
+
+### 从 Git commit
+
+```bash
+dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-commit>
+```
+
+`<40-char-commit>` 用仓库 Release 或 dsh.pub 记录里的完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。
+
+### 从 npm
+
+```bash
+dsh plugin --profile <profile> add gpt-image-design
+```
+
+npm 上现有 `0.2.x`；本仓库的 `0.3.0` 以 Git/dsh.pub 分发为准。
+
+### 启用
+
+安装后重启 DSH，打开 **设置 → 插件**，确认 **GPT-Image Design** 已启用；工具列表会出现 `gpt_image_design`，侧边栏会出现 **Image Design** 面板。
+
+## 首次登录（web 通道）
+
+```text
+gpt_image_design(action="login")
+```
+
+插件会打开一个独立的 Chrome 窗口。登录 ChatGPT 后关闭窗口即可；登录态保存在 `~/.dsh/pro-research/browser`，与研究插件共用，只需登录一次。
+
+`api` 通道不需要登录；配好 key 后用 `probe` 自检。
+
+## 快速开始
+
+### web 通道
+
+```text
+gpt_image_design(
+  action="start",
+  confirmed=true,
+  title="落地页首屏",
+  question="生成 3 个方向的首屏设计图和 1 个 HTML demo",
+  brief="深色科技风，中文大标题，右侧产品界面，单文件 HTML",
+  criteria=["至少 1 张完整首屏图", "一个可打开的 HTML demo"],
+  rounds=2,
+  designs=3
+)
+```
+
+产物写入 `<主题>/artifacts/round-NN/`：
+
+```text
+<project>/docs/design/<slug>/
+├── topic.json
+├── artifacts/round-01/
+│   ├── image-01.png
+│   ├── image-02.png
+│   └── code-01.html
+└── ...
+```
+
+- `image-*.png`：ChatGPT 生成的图片。
+- `code-*.html`：前端代码块；单文件 HTML 可在面板 iframe 预览。
+
+### API 通道
+
+在 **设置 → 插件 → GPT-Image Design** 里把 `channel` 改成 `api`，并填写：
+
+| 设置 | 默认 | 说明 |
+|---|---|---|
+| `channel` | `web` | `web` 或 `api`。 |
+| `imageBaseUrl` | `https://api.openai.com/v1` | 含版本前缀的 API 根地址。 |
+| `imageApiKey` | 空 | key；留空则读环境变量 `GPT_IMAGE_API_KEY`。 |
+| `imageModel` | `gpt-image-1` | 模型名，例如 `gpt-image-1`、`dall-e-3` 或服务商模型名。 |
+| `imageSize` | `auto` | `auto` 或 `1024x1024` / `1536x1024` / `1024x1536` 等。 |
+| `imageQuality` | `auto` | `auto` / `low` / `medium` / `high`（服务商支持时生效）。 |
+| `imageFormat` | `png` | `png` / `jpeg` / `webp`。 |
+| `imageAuth` | `bearer` | `bearer`（`Authorization: Bearer`）或 `api-key`（Azure 风格）。 |
+| `imageEdit` | `auto` | 材料里的图片是否作为参考图发给 `/images/edits`：`auto` / `off`。 |
+| `imageTimeoutSeconds` | `300` | 单张图片的生成/下载超时（秒，10–3600）。 |
+
+自检：
+
+```text
+gpt_image_design(action="probe")
+```
+
+返回 `channel: "api"`、`probe.ok`、模型列表或 `probe.reason`。`ok=false` 时先看 reason（key、base URL、模型名）。
+
+改完设置或环境变量后要重载插件（重启 DSH）才生效；进行中的主题不受影响。
+
+如果设置页没有渲染这些项，可以直接写进 profile 的 `cordis.patch.yml`（`~/.dsh/profiles/<profile>/cordis.patch.yml`）：
+
+```yaml
+- id: gpt-image-design
+  name: gpt-image-design
+  config:
+    channel: api
+    imageBaseUrl: https://api.openai.com/v1
+    imageApiKey: <your-key>        # 或用环境变量 GPT_IMAGE_API_KEY
+    imageModel: gpt-image-1
+    imageSize: 1536x1024
+```
+
+### API 通道发起
+
+```text
+gpt_image_design(
+  action="start",
+  confirmed=true,
+  title="深色首屏",
+  question="出三个方向的首屏",
+  brief="深色科技风，中文大标题，右侧产品界面",
+  criteria=["三张图方向可区分", "标题中文可读"],
+  designs=3
+)
+```
+
+每个方向调用一次生图接口（`designs=3` 就是 3 次请求），图片保存到 `artifacts/round-NN/image-01.png` 等。
+
+### 接口约定
+
+- `POST {imageBaseUrl}/images/generations`，JSON：`{model, prompt, n:1, size?, quality?, output_format?}`；
+- 材料里有图片（`.png/.jpg/.jpeg/.webp`，最多 4 张、每张 25MB）且 `imageEdit=auto` 时改走 `POST {imageBaseUrl}/images/edits`（multipart，`image[]`）；
+- 响应支持 `data[].b64_json`、`data[].url`；`url` 会下载后落盘，鉴权头只发给 `imageBaseUrl` 同源地址；
+- 服务商必须兼容 OpenAI images 的参数名；用 `image_size`、`batch_size` 等自定义参数的服务商暂不支持。
+
+### 成本与轮次
+
+- 每轮 = `designs` 次生图请求，按 API 计费；没有配置自动裁决（`judgeProvider` + `judgeModel`）时，API 通道默认只跑 1 轮，避免重复计费。显式传 `rounds` 可覆盖。
+- 自动裁决在 API 通道只看得到提示词与结果清单，看不到图片本身；更可靠的是人工复核，或不配裁决、跑 1 轮后用 `continue` 显式加轮。
+- 部分方向失败不会丢掉已成功的图；失败原因写进该轮答复和面板记录。
+- DSH 重启后，进行中的 API 请求会丢失，这一轮不会自动重发；已生成的图片仍在 `artifacts/` 里。
+
+## 设置（通用）
+
+以下设置两个通道都有：
+
+| 设置 | 默认 | 说明 |
+|---|---|---|
+| `rounds` | `3` | 每个主题默认轮次上限（1–10）。 |
+| `designs` | `3` | 每轮生成的方向/图片数（1–6）。 |
+| `model` | `pro` | `web` 通道的 ChatGPT 页面模型：`pro` 或 `thinking`。 |
+| `store` | `project` | 记录位置：`project`（仓库 `docs/design`）或 `local`（DSH 本机）。 |
+| `autoStart` | `false` | 设计卡是否跳过点击直接开跑。 |
+| `autoReview` | `true` | capped 后唤醒原会话检查产物。 |
+| `notify` | `stall-only` | `stall-only` 只在卡住时提醒，`all` 完成也提醒。 |
+| `stallMinutes` | `45` | 无进展判定分钟数。 |
+| `maxRoundMinutes` | `90` | 单轮墙钟上限（分钟）。 |
+| `maxFiles` | `12` | 单轮附件数量上限。 |
+| `maxTotalMB` | `24` | 单轮附件总大小（MB）。 |
+| `rawAnswers` | `local` | 原始答复保存位置：`local` 或 `repo`。 |
+| `rawAnswersDir` | 空 | `local` 模式的原文目录。 |
+| `headless` | `false` | 无头模式仅建议用于自检。 |
+| `judgeProvider` | 空 | 自动裁决的 LLM provider；填 `off` 关闭。 |
+| `judgeModel` | 空 | 自动裁决的 model。 |
+
+## 产物与记录
+
+- `store=project`：`<项目>/docs/design/`（设计插件使用 `docs/design`）。
+- `store=local`：`~/.dsh/gpt-image-design/`。
+- 原始答复默认只在本机；`rawAnswers=repo` 才复制进项目。
+- API 通道的答复是提示词与结果清单（纯文本），不是模型自然语言回复。
+- 登录态：`~/.dsh/pro-research/browser`（与研究插件共用，敏感，不要提交）。
+
+## 验证清单
+
+1. 工具列表出现 `gpt_image_design`，侧边栏出现 **Image Design** 面板。
+2. `action="probe"` 返回当前通道和状态；`web` 通道显示登录态，`api` 通道显示模型/接口检查结果。
+3. 跑一个 1 轮小主题，确认 `artifacts/round-01/` 下有图片；`web` 通道还应出现 `code-*.html`。
+4. 面板里能打开画廊，点击 demo 能在 iframe 里预览。
+5. 刷新侧边栏，确认主题、轮次、产物路径都在。
+
+## 安全与隐私
+
+- **会出网**：`web` 通道把问题、brief、判据和材料发送到 `chatgpt.com`；`api` 通道发送到你配置的 `imageBaseUrl`。
+- **本地保存**：登录态在 `~/.dsh/pro-research/browser`；图片/代码在项目 `docs/design` 或 `~/.dsh/gpt-image-design`；原始答复在本机。
+- **key 处理**：key 只来自插件设置或 `GPT_IMAGE_API_KEY`；不会写进 `topic.json`、回执、日志或错误信息（错误体做了脱敏）。
+- **权限边界**：插件以 DSH 进程权限运行，可以读写上述目录、启动本机 Chrome、请求你配置的生图服务；不会把 key 发给 `imageBaseUrl` 之外的地址，也不会把参考图发给其他服务商。
+- **清理**：删除主题目录即可删除该主题；卸载时见下文。不要把 key、登录态或 `~/.dsh` 提交到仓库。
+
+## 已知限制
+
+- `web` 通道受页面改版、Cloudflare、账号风控、额度限制影响；失败时保留已完成轮次，不假装成功。
+- `web` 通道只支持单账号、单会话；不支持多账号并行。
+- `api` 通道只支持 OpenAI images 参数名；自定义参数服务商暂不支持。
+- 自动裁决在 API 通道看不到图片本身，不等同于视觉评审；重要结果请人工看画廊。
+- 单轮图片数、附件大小、超时受 `designs` / `maxFiles` / `maxTotalMB` / `imageTimeoutSeconds` 限制。
+- 页面上的模型/功能以 ChatGPT 网页实际提供为准。
+
+## 故障排查
+
+| 现象 | 先检查 |
+|---|---|
+| `web` 登录窗口没出现 | 是否有残留的插件 Chrome 窗口占用 profile；关掉后重试 `login`。 |
+| 登录后仍显示未登录 | `probe` 看状态；确认 `~/.dsh/pro-research/browser` 可写；必要时重新 `login`。 |
+| `api` 返回 401 | key、`imageAuth`（`bearer` / `api-key`）、base URL 是否匹配服务商。 |
+| `api` 返回 404 | `imageBaseUrl` 是否包含版本前缀，模型名是否存在。 |
+| 只有部分方向成功 | 这是允许的；看该轮答复里的失败原因，已成功的图不会丢。 |
+| demo 在 iframe 里打不开 | 确认 `code-*.html` 是单文件 HTML；外链资源可能被 iframe 限制。 |
+| 参考图没发出去 | 检查材料格式（png/jpg/jpeg/webp）、数量（最多 4 张）、大小（每张 25MB）和 `imageEdit`。 |
+| 改设置不生效 | 需要重启 DSH 重载插件；进行中的主题不受影响。 |
+
+## 兼容性
+
+| 项 | 值 |
+|---|---|
+| DSH | `0.2.1-rc.2` 实测；`engines.dsh` 为 `>=0.2.1-rc.2 <0.3.0` |
+| Node.js | 22+ |
+| 浏览器 | `web` 通道需要本机 Google Chrome（稳定版） |
+| API | 任意兼容 OpenAI images 参数名的服务 |
+| 平台 | Windows 已验证；macOS/Linux 使用对应的 Chrome 启动路径，未在仓库内声明实测 |
+| 插件版本 | `0.3.0` |
+
+## 禁用与卸载
+
+**临时禁用**：**设置 → 插件** 关闭 **GPT-Image Design**；或从 profile 的 `dsh.profile.bundles` 移除 `gpt-image-design`，重启 DSH。
+
+**卸载**：
+
+```bash
+dsh plugin --profile <profile> remove gpt-image-design
+```
+
+然后按需删除：
+
+- `~/.dsh/gpt-image-design/`（`store=local` 的记录）
+- `~/.dsh/pro-research/browser/`（如果你也不再使用研究插件；两个插件共用登录态）
+- 项目里的 `docs/design/`（只删你确认不要的主题）
+
+## 开发
+
+源码和开发说明在 monorepo：[Octo-o-o-o/dsh-pro](https://github.com/Octo-o-o-o/dsh-pro/tree/main/packages/design)。
+
+```bash
+npm install
+npm test
+npm run typecheck
+npm run build
+node scripts/smoke-bundle.mjs
+```
+
+本仓库是发布仓库：`lib/` 是构建产物，请不要直接改 `lib/`；改源码请到 monorepo 的 `packages/design`。
+
+## License
+
+MIT。
