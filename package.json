@@ -1,6 +1,6 @@
 {
   "name": "gpt-image-design",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "在 DSH 中用 ChatGPT Pro 网页会话或任意 OpenAI 兼容生图 API 出设计图与单文件 HTML demo；图片和代码保存到本地，侧边栏画廊预览、iframe 打开。Generate images and HTML demos via a real ChatGPT Pro web session or an OpenAI-compatible image API, saved locally with a gallery in DSH.",
   "private": false,
   "type": "module",
