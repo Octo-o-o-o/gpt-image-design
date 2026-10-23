@@ -11,6 +11,10 @@
 
 > **风险提示**：`web` 通道是订阅网页自动化，不是官方 API；页面改版、账号风控与 ToS 风险由使用者承担。`api` 通道按服务商条款计费，只产出图片，不产出 HTML demo。
 
+![Image Design 面板](resources/screenshots/panel.png)
+
+*首次安装后的空状态：侧边栏入口和面板已加载；在会话里用 `/gpt-image-design` 开始。*
+
 ## 两种通道
 
 | 通道 | 适合 | 产出 |
@@ -220,6 +224,7 @@ gpt_image_design(
 - **本地保存**：登录态在 `~/.dsh/pro-research/browser`；图片/代码在项目 `docs/design` 或 `~/.dsh/gpt-image-design`；原始答复在本机。
 - **key 处理**：key 只来自插件设置或 `GPT_IMAGE_API_KEY`；不会写进 `topic.json`、回执、日志或错误信息（错误体做了脱敏）。
 - **权限边界**：插件以 DSH 进程权限运行，可以读写上述目录、启动本机 Chrome、请求你配置的生图服务；不会把 key 发给 `imageBaseUrl` 之外的地址，也不会把参考图发给其他服务商。
+- **文件管理器**：插件只用固定的 `explorer.exe` / `open` / `xdg-open` 参数打开它自己生成的产物文件/目录，不拼接用户输入，也不执行 shell 命令。
 - **清理**：删除主题目录即可删除该主题；卸载时见下文。不要把 key、登录态或 `~/.dsh` 提交到仓库。
 
 ## 已知限制
@@ -243,6 +248,16 @@ gpt_image_design(
 | demo 在 iframe 里打不开 | 确认 `code-*.html` 是单文件 HTML；外链资源可能被 iframe 限制。 |
 | 参考图没发出去 | 检查材料格式（png/jpg/jpeg/webp）、数量（最多 4 张）、大小（每张 25MB）和 `imageEdit`。 |
 | 改设置不生效 | 需要重启 DSH 重载插件；进行中的主题不受影响。 |
+
+## 本地验证记录
+
+2026-10-23，DSH `0.2.1-rc.2`，空 `web` profile，从公开 commit `e29502c` 安装：
+
+- `--dump-config` 显示 `# == gpt-image-design` 组合包层；
+- `GET /gpt-image-design/topics` 返回 `200 {"topics":[]}`；
+- 侧边栏 **Image Design** 入口和空面板正常加载。
+
+> 这是安装/加载验证，不等于真实网页登录或真实生图 API 的验收；`web` 通道需要你自己的 ChatGPT 账号，`api` 通道需要自己的服务商 key。
 
 ## 兼容性
 
