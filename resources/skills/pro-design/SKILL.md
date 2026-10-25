@@ -44,7 +44,7 @@ brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的�
 - 图片由传输层抓取或下载，保存到 `<主题>/artifacts/round-NN/image-01.png`；
 - web 通道的前端代码块保存为 `code-01.html`/`.tsx` 等，HTML 可以直接在设计面板的 iframe 里预览；
 - api 通道没有代码块；需要 demo 时由你另写，并在交付说明里标明来源；
-- 面板「Image Design」按项目列出主题，详情是画廊 + demo 预览 + 设计决策。
+- 面板「Image Design」按项目列出主题，详情是画廊 + demo 预览 + 设计决策；概览显示「取回 X/Y 张、HTML 是否取回、视觉待人工确认」，取回数量不等于验收通过。
 
 答复/结果回来后由宿主裁决：
 
@@ -53,10 +53,16 @@ brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的�
 3. 选方向、写理由，未采纳项保留驳回依据；
 4. 交付 `design.md`，引用实际产物路径，不把模型原文当交付物。
 
+自动裁决失败时主题停在 `reviewing`（`review_from=answered`），图片与 HTML 保留：接受、继续、重新生成，或修好裁决模型后重试。文本裁决看不到图片，不得用它替“方向可区分 / 文案可读”这类视觉判据盖章。
+
 ## 追问
 
 `gpt_image_design(action="continue", topic_id=..., brief="只改配色，保留版式", materials=[...], confirmed=true)`。
+
+用户选定一张已有图片时，使用面板的“以这张继续改”，或 `gpt_image_design(action="continue", topic_id=..., base_artifact="artifacts/round-01/image-02.png", brief="保留布局，只换背景色", confirmed=true)`。底图必须是本主题已记录的 PNG/JPEG/WebP；这条路径只附所选一张图、只追加一轮一个结果，不与 `materials` 或多个 `designs` 合用。记录保留底图关联，旧图不覆盖。`imageEdit=off` 或 API 不支持 edits 会停止，不改用无底图生成；底图确实发送不等于视觉符合要求。
 web 通道在同一会话里只上传新增材料，会话失效会自动回退整份清单；api 通道每轮重新发提示词，参考图按当轮材料重新附加。
+
+整版不满意用 `regenerate`（保留历史、开新版本），`note` 写不满意点，可附 `materials=[...]`（相对主题项目根目录）。终态主题确认后可 `delete`，目录与面板记录一并删除，不可恢复。
 
 ## 边界
 
