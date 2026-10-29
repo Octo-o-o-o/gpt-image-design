@@ -30,7 +30,15 @@
 - 适合落地页/海报/UI 方向探索；不适合需要像素级精确排版、或必须使用特定品牌规范自动校验的场景。
 
 
-## 0.3.4：可靠裁决与 local 交付
+## 0.3.5：API 安全与运行一致性
+
+- 自检与生成共用 URL/协议/配置检查；除本机 loopback 外必须 HTTPS，所有 API/下载重定向明确拒绝，请配置最终直达 endpoint 或直链。
+- 致命错误立即取消同轮其他并发请求，并等待清理；模型列表、生成 JSON、错误正文和图片下载均有流式字节上限，每方向只接收请求的 1 张图片。
+- 按实际 key 脱敏错误；跨源 CDN 直链下载不带 API key。参考图、预览、下载、原生打开及 ZIP 校验真实路径，越界链接和缺失材料不会继续外发。
+- 修复授权轮次重试预算、两轮间恢复、裁决取消及新版接受时误用旧摘要。完整审查与验证边界见 [0.3.5 记录](https://github.com/Octo-o-o-o/dsh-pro/blob/main/docs/validation/release-0.3.5-2026-10-29.md)。
+- 本次发布 Git 0.3.5；npm 仍为 0.3.4，社区市场版本独立。视觉与交互质量仍需实际验收。
+
+## 0.3.4：可靠裁决与 local 交付（已保留）
 
 - 裁决为推理与 JSON 预留共同的输出预算；只有正常完成且判据满足才接受。
 - `read_round` 读取真实答复/裁决；`read_report` 返回旧稿及 revision；`write_report` 写入已授权主题的固定交付文件。
@@ -53,7 +61,7 @@
 dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-commit>
 ```
 
-`<40-char-commit>` 用已发布的 `v0.3.4` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前 Git 版本为 `0.3.4`。它与 Research 同步修复共享网页完成判定、发送前恢复与异常分类；API 生图接口未改。
+`<40-char-commit>` 用 `v0.3.5` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前源码/Git 版本为 `0.3.5`；请核对 Release 已发布再安装。本版同时加固共享状态机和 API 边界，不沿用旧版的真实服务验收结论。
 
 ### 从 dsh.pub（收录后推荐）
 
@@ -301,7 +309,7 @@ gpt_image_design(
 | 浏览器 | `web` 通道需要本机 Google Chrome（稳定版） |
 | API | 任意兼容 OpenAI images 参数名的服务 |
 | 平台 | Windows 已验证；macOS/Linux 使用对应的 Chrome 启动路径，未在仓库内声明实测 |
-| 插件版本 | `0.3.4` |
+| 插件版本 | Git `0.3.5`；npm `0.3.4` |
 
 ## 禁用与卸载
 

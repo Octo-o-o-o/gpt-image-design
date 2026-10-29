@@ -1,6 +1,6 @@
 {
   "name": "gpt-image-design",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "DSH 插件：用 ChatGPT 网页生成设计图与 HTML demo，或用 OpenAI 兼容 API 生图；本地画廊、参考图迭代与交付稿。Images and web demos with a local gallery; image API mode produces images only.",
   "private": false,
   "type": "module",
