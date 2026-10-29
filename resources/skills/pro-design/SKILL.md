@@ -24,7 +24,7 @@ web 通道与研究插件共用同一个**本机 Chrome profile 和单账号**�
 
 调用 `gpt_image_design`：`action=start, confirmed=true, title, question, brief, criteria[], materials[], rounds, designs, store`。
 
-`store` 必须与设计卡一致（`project` 或 `local`）；核对工具返回的 `store` 与 `path`。如果宿主仅可写当前项目，且用户允许项目留存，启动时选 `project`；local 目录不在宿主写入范围时先说明交付稿权限缺口，不绕过权限或隐式迁移已有主题。
+`store` 必须与设计卡一致（`project` 或 `local`）；核对工具返回的 `store` 与 `path`。local 与 project 均使用插件的 `read_round`、`read_report`、`write_report` 整理交付稿，无需宿主通用文件工具访问 local 目录。保留 DSH 工具权限检查，不修改宿主权限或隐式迁移已有主题。
 
 `designs` 是**本轮方向/图片数**（1–6，默认取设置里的 3）；`rounds` 是追问轮数。两者都写在卡片上让用户确认。
 
@@ -41,6 +41,8 @@ brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的�
 
 发出去后不逐轮汇报。生成图片通常需要 1–3 分钟；卡住时看 `stall_reason`，`unknown_submission` 必须人工核对。api 通道的 `config` 表示 key/base URL/模型名或请求参数被拒，修设置后 `resume`；DSH 重启会丢掉进行中的 API 请求，这一轮不会自动重发。
 
+`stalled` 时读取 `status.last_round`。只有 `submissionState=not_sent` 才能确认发送前停止；任务已获授权且原因已解决或仅为临时导航超时时，可 `resume` 原轮一次，不新建主题。仍失败就报告现场，不循环重试；提交不明时不能凭错误文案自行重发。
+
 ## 产物与裁决
 
 - 图片由传输层抓取或下载，保存到 `<主题>/artifacts/round-NN/image-01.png`；
@@ -55,7 +57,7 @@ brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的�
 3. 选方向、写理由，未采纳项保留驳回依据；
 4. 交付 `design.md`，引用实际产物路径，不把模型原文当交付物。
 
-将 `design.md` 写入工具返回的主题目录，面板会识别为宿主交付稿；旧 `report.md` 仍兼容。首行注明实际覆盖范围，例如 `<!-- dsh-pro-report: {"generation":1,"throughRound":2} -->`。先核对对应轮次与产物，再更新正文和文件头；文件存在不代表视觉验收通过。
+先用 `status` 与 `read_round(topic_id, round)` 核对版本、轮次、原答复及裁决；打开实际图片/HTML 做视觉与交互验收。用 `read_report(topic_id)` 读取旧稿与 `report.revision`，再调用 `write_report(topic_id, markdown, generation, through_round, expected_revision, confirmed=true)`。没有旧稿时传 `expected_revision=""`；用户已授权当前任务与交付时无需重复确认。插件固定写 `design.md` 并自动添加覆盖范围文件头，正文不要包含文件头；旧 `report.md` 仍兼容读取。跨项目、运行中、过时轮次或旧 revision 会被拒绝；冲突时重新读取并整合。工具权限被拒绝时说明原因，不改用外部脚本代写。文件存在不代表视觉验收通过。
 
 自动裁决失败时主题停在 `reviewing`（`review_from=answered`），图片与 HTML 保留：接受、继续、重新生成，或修好裁决模型后重试。文本裁决看不到图片，不得用它替“方向可区分 / 文案可读”这类视觉判据盖章。
 

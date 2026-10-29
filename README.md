@@ -7,7 +7,7 @@
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.3-4c1)
 
-> English: Generate images and HTML demos through a real ChatGPT Pro web session or an OpenAI-compatible image API, saved locally with a gallery in DSH.
+> English: Generate images and standalone HTML demos through ChatGPT Pro on the web, or images through an OpenAI-compatible image API. Keep artifacts and versioned delivery notes locally in DSH.
 
 > **风险提示**：`web` 通道是订阅网页自动化，不是官方 API；页面改版、账号风控与 ToS 风险由使用者承担。`api` 通道按服务商条款计费，只产出图片，不产出 HTML demo。
 
@@ -29,6 +29,14 @@
 - 材料里的图片可以作为参考图（`api` 通道走 `/images/edits`），最多 4 张、每张 25MB。
 - 适合落地页/海报/UI 方向探索；不适合需要像素级精确排版、或必须使用特定品牌规范自动校验的场景。
 
+
+## 0.3.4：可靠裁决与 local 交付
+
+- 裁决为推理与 JSON 预留共同的输出预算；只有正常完成且判据满足才接受。
+- `read_round` 读取真实答复/裁决；`read_report` 返回旧稿及 revision；`write_report` 写入已授权主题的固定交付文件。
+- 支持 `project` / `local`，不要求放宽宿主文件权限；写稿经过 DSH 工具权限检查，带版本与轮次覆盖校验及并发覆盖保护。
+- 原答复、运行汇总与宿主整理的交付稿分别保留。设计图片与 HTML 必须另做视觉、交互验收。
+
 ## 前置条件
 
 - DSH `>= 0.2.1-rc.3 < 0.3.0`（本版本实测 `0.2.1-rc.3`）。
@@ -45,7 +53,7 @@
 dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-commit>
 ```
 
-`<40-char-commit>` 用已发布的 `v0.3.3` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前 Git 版本为 `0.3.3`。它与 Research 同步修复共享网页完成判定、发送前恢复与异常分类；API 生图接口未改。
+`<40-char-commit>` 用已发布的 `v0.3.4` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前 Git 版本为 `0.3.4`。它与 Research 同步修复共享网页完成判定、发送前恢复与异常分类；API 生图接口未改。
 
 ### 从 dsh.pub（收录后推荐）
 
@@ -53,15 +61,15 @@ dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-c
 npx dshpub add Octo-o-o-o/gpt-image-design
 ```
 
-dsh.pub 会把仓库固定到一个公开 commit 再安装。当前市场条目仍指 `0.3.0`，待上游审核；收录后再把主入口切过来。
+dsh.pub 会把仓库固定到一个公开 commit 再安装。市场收录与 Git/npm 发版独立，安装前请核对市场显示的版本与 commit。
 
-### 从 npm（暂缓更新）
+### 从 npm
 
 ```bash
 dsh plugin --profile <profile> add gpt-image-design
 ```
 
-`0.3.3` 尚未发布到 npm；现有 `0.2.x` 不包含本版改进，请优先使用上面的 Git 安装。
+安装时建议指定版本 `@0.3.4`，便于复现；`desktop` 与 `web` profile 均受支持。
 
 ### 启用
 
@@ -276,11 +284,13 @@ gpt_image_design(
 
 > 这是安装/加载验证，不等于真实网页登录或真实生图 API 的验收；`web` 通道需要你自己的 ChatGPT 账号，`api` 通道需要自己的服务商 key。
 
-## 0.3.3 验证边界
+## 0.3.4 验证边界
 
-本版通过单元、Chrome 本地网页、双插件流程与恢复回归。首次真实登录成功路径、真实自动裁决非 JSON 故障的根因、付费生图 API 和 macOS/Linux 端到端尚未全部验证。裁决异常保留答复与结束原因，可重试或人工核对。宿主只可写项目时，应在启动卡中选择获授权的 `store=project`；已有 local 主题不隐式迁移。
+本版将裁决输出预算提高到 8,192 token，避免推理耗尽预算后截断 JSON；异常仍保留原答复与结束原因，不会误判成功。新增固定主题范围的交付工具，支持宿主在“工作区内修改”模式下整理 local 交付稿。首次人工登录、付费生图 API、macOS/Linux 真实端到端仍需各环境独立验收。
 
-宿主在主题目录写 `design.md` 后，面板产物页显示为“宿主交付稿”；兼容旧 `report.md`。交付稿首行使用 `<!-- dsh-pro-report: {"generation":1,"throughRound":1} -->` 标注实际覆盖范围。
+2026-10-29 在 Windows、DSH `0.2.1-rc.3` 完成真实网页验收：第 1 轮取回 1254×1254 PNG，第 2 轮补齐单文件 HTML；裁决使用保存答案恢复并正常返回 `partial`，把视觉和交互留给实际检查。图片已目视核对，HTML 在 DSH 预览中实测 Start→Done；local `design.md` 通过插件写入并回读。详情见 [0.3.4 验证记录](https://github.com/Octo-o-o-o/dsh-pro/blob/main/docs/validation/release-0.3.4-2026-10-29.md)。
+
+宿主用 `read_round` 核对实际证据，`read_report` 取旧稿与 revision，再调用 `write_report` 写入固定的 `design.md`；面板显示为“宿主交付稿”，兼容旧 `report.md`。插件自动记录覆盖范围并拒绝过时轮次、跨项目、目录链接或旧 revision；视觉与交互仍需实际验收。
 
 ## 兼容性
 
@@ -291,7 +301,7 @@ gpt_image_design(
 | 浏览器 | `web` 通道需要本机 Google Chrome（稳定版） |
 | API | 任意兼容 OpenAI images 参数名的服务 |
 | 平台 | Windows 已验证；macOS/Linux 使用对应的 Chrome 启动路径，未在仓库内声明实测 |
-| 插件版本 | `0.3.3` |
+| 插件版本 | `0.3.4` |
 
 ## 禁用与卸载
 
