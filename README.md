@@ -45,7 +45,7 @@
 dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-commit>
 ```
 
-`<40-char-commit>` 用 `v0.3.2` Release 对应的完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。本 README 对应 `0.3.2`，安装后请核对插件版本。
+`<40-char-commit>` 用已发布的 `v0.3.3` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前 Git 版本为 `0.3.3`。它与 Research 同步修复共享网页完成判定、发送前恢复与异常分类；API 生图接口未改。
 
 ### 从 dsh.pub（收录后推荐）
 
@@ -61,7 +61,7 @@ dsh.pub 会把仓库固定到一个公开 commit 再安装。当前市场条目�
 dsh plugin --profile <profile> add gpt-image-design
 ```
 
-`0.3.2` 尚未发布到 npm；现有 `0.2.x` 不包含本版改进，请优先使用上面的 Git 安装。
+`0.3.3` 尚未发布到 npm；现有 `0.2.x` 不包含本版改进，请优先使用上面的 Git 安装。
 
 ### 启用
 
@@ -276,6 +276,12 @@ gpt_image_design(
 
 > 这是安装/加载验证，不等于真实网页登录或真实生图 API 的验收；`web` 通道需要你自己的 ChatGPT 账号，`api` 通道需要自己的服务商 key。
 
+## 0.3.3 验证边界
+
+本版通过单元、Chrome 本地网页、双插件流程与恢复回归。首次真实登录成功路径、真实自动裁决非 JSON 故障的根因、付费生图 API 和 macOS/Linux 端到端尚未全部验证。裁决异常保留答复与结束原因，可重试或人工核对。宿主只可写项目时，应在启动卡中选择获授权的 `store=project`；已有 local 主题不隐式迁移。
+
+宿主在主题目录写 `design.md` 后，面板产物页显示为“宿主交付稿”；兼容旧 `report.md`。交付稿首行使用 `<!-- dsh-pro-report: {"generation":1,"throughRound":1} -->` 标注实际覆盖范围。
+
 ## 兼容性
 
 | 项 | 值 |
@@ -285,7 +291,7 @@ gpt_image_design(
 | 浏览器 | `web` 通道需要本机 Google Chrome（稳定版） |
 | API | 任意兼容 OpenAI images 参数名的服务 |
 | 平台 | Windows 已验证；macOS/Linux 使用对应的 Chrome 启动路径，未在仓库内声明实测 |
-| 插件版本 | `0.3.2` |
+| 插件版本 | `0.3.3` |
 
 ## 禁用与卸载
 

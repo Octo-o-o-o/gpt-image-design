@@ -22,7 +22,9 @@ web 通道与研究插件共用同一个**本机 Chrome profile 和单账号**�
 4. 轮次上限、本轮方向/图片数（默认 3）与产物位置；
 5. 当前通道（web / api）与模型；API 通道要写明「只出图，不出 HTML demo」。
 
-调用 `gpt_image_design`：`action=start, confirmed=true, title, question, brief, criteria[], materials[], rounds, designs`。
+调用 `gpt_image_design`：`action=start, confirmed=true, title, question, brief, criteria[], materials[], rounds, designs, store`。
+
+`store` 必须与设计卡一致（`project` 或 `local`）；核对工具返回的 `store` 与 `path`。如果宿主仅可写当前项目，且用户允许项目留存，启动时选 `project`；local 目录不在宿主写入范围时先说明交付稿权限缺口，不绕过权限或隐式迁移已有主题。
 
 `designs` 是**本轮方向/图片数**（1–6，默认取设置里的 3）；`rounds` 是追问轮数。两者都写在卡片上让用户确认。
 
@@ -52,6 +54,8 @@ brief 里写清尺寸/比例、风格、必须出现的文案、必须区分的�
 2. 有 HTML demo 时打开核实能渲染，记录依赖/外链；
 3. 选方向、写理由，未采纳项保留驳回依据；
 4. 交付 `design.md`，引用实际产物路径，不把模型原文当交付物。
+
+将 `design.md` 写入工具返回的主题目录，面板会识别为宿主交付稿；旧 `report.md` 仍兼容。首行注明实际覆盖范围，例如 `<!-- dsh-pro-report: {"generation":1,"throughRound":2} -->`。先核对对应轮次与产物，再更新正文和文件头；文件存在不代表视觉验收通过。
 
 自动裁决失败时主题停在 `reviewing`（`review_from=answered`），图片与 HTML 保留：接受、继续、重新生成，或修好裁决模型后重试。文本裁决看不到图片，不得用它替“方向可区分 / 文案可读”这类视觉判据盖章。
 
