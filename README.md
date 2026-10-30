@@ -1,15 +1,15 @@
 # GPT-Image Design
 
-在 DeepSeek Harness（DSH）里，用真实的 ChatGPT Pro 网页会话，或任意 OpenAI 兼容生图 API，出设计图与单文件 HTML demo。**web 通道可同时产出图片和 HTML demo；API 通道只产出图片，不产出 HTML。** 图片和代码保存到本地，侧边栏画廊预览，iframe 直接打开 demo。
+在 DeepSeek Harness（DSH）里，用真实的 ChatGPT 网页会话，或任意 OpenAI 兼容生图 API，出设计图与单文件 HTML demo。**web 通道可同时产出图片和 HTML demo；API 通道只产出图片，不产出 HTML。** 图片和代码保存到本地，侧边栏画廊预览，iframe 直接打开 demo。
 
 [![dsh.pub](https://dsh.pub/api/badges/Octo-o-o-o/gpt-image-design.svg)](https://dsh.pub/zh/plugins/gpt-image-design/)
 [![npm](https://img.shields.io/npm/v/gpt-image-design.svg)](https://www.npmjs.com/package/gpt-image-design)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![DSH](https://img.shields.io/badge/DSH-0.2.1--rc.3-4c1)
 
-> English: Generate images and standalone HTML demos through ChatGPT Pro on the web, or images through an OpenAI-compatible image API. Keep artifacts and versioned delivery notes locally in DSH.
+> English: Generate images and standalone HTML demos through ChatGPT on the web, or images through an OpenAI-compatible image API. Keep artifacts and versioned delivery notes locally in DSH.
 
-> **风险提示**：`web` 通道是订阅网页自动化，不是官方 API；页面改版、账号风控与 ToS 风险由使用者承担。`api` 通道按服务商条款计费，只产出图片，不产出 HTML demo。
+> **风险提示**：`web` 通道是网页自动化，不是官方 API；页面改版、账号风控与 ToS 风险由使用者承担。`api` 通道按服务商条款计费，只产出图片，不产出 HTML demo。
 
 ![Image Design 面板](resources/screenshots/panel.png)
 
@@ -19,8 +19,8 @@
 
 | 通道 | 适合 | 产出 |
 |---|---|---|
-| `web`（默认） | 有 ChatGPT 订阅，想顺带生成 HTML demo | 图片 + 前端代码/HTML demo |
-| `api` | 没有订阅，或想用 `gpt-image-1` 等 API 的质量/尺寸/参考图控制 | 只有图片；HTML demo 由 agent 另行生成 |
+| `web`（默认） | 使用 ChatGPT 网页账号，想顺带生成 HTML demo；能力与额度以该账号为准 | 图片 + 前端代码/HTML demo |
+| `api` | 想用 `gpt-image-1` 等 API 的质量/尺寸/参考图控制 | 只有图片；HTML demo 由 agent 另行生成 |
 
 ## 它解决什么问题
 
@@ -30,13 +30,17 @@
 - 适合落地页/海报/UI 方向探索；不适合需要像素级精确排版、或必须使用特定品牌规范自动校验的场景。
 
 
+## 0.3.6：Pro 优先，免费账号自动回退
+
+网页模型默认 `prefer-pro`：优先选中可用 Pro，没有可用 Pro 才沿用当前模型；禁用、锁定和升级入口不算可用 Pro。已有配置需改为 `prefer-pro` 后新建主题；旧主题保留原模型。显式 `auto` 保留当前选择，显式指定模型仍须核验；可用 Pro 选择失败时停止发送。图片、附件与额度以账号能力为准，API 生图设置不受影响。
+
 ## 0.3.5：API 安全与运行一致性
 
 - 自检与生成共用 URL/协议/配置检查；除本机 loopback 外必须 HTTPS，所有 API/下载重定向明确拒绝，请配置最终直达 endpoint 或直链。
 - 致命错误立即取消同轮其他并发请求，并等待清理；模型列表、生成 JSON、错误正文和图片下载均有流式字节上限，每方向只接收请求的 1 张图片。
 - 按实际 key 脱敏错误；跨源 CDN 直链下载不带 API key。参考图、预览、下载、原生打开及 ZIP 校验真实路径，越界链接和缺失材料不会继续外发。
 - 修复授权轮次重试预算、两轮间恢复、裁决取消及新版接受时误用旧摘要。完整审查与验证边界见 [0.3.5 记录](https://github.com/Octo-o-o-o/dsh-pro/blob/main/docs/validation/release-0.3.5-2026-10-29.md)。
-- 本次发布 Git 0.3.5；npm 仍为 0.3.4，社区市场版本独立。视觉与交互质量仍需实际验收。
+- 0.3.5 阶段只发布 Git，npm 当时为 0.3.4；社区市场版本独立。视觉与交互质量仍需实际验收。
 
 ## 0.3.4：可靠裁决与 local 交付（已保留）
 
@@ -61,7 +65,7 @@
 dsh plugin --profile <profile> add github:Octo-o-o-o/gpt-image-design#<40-char-commit>
 ```
 
-`<40-char-commit>` 用 `v0.3.5` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。当前源码/Git 版本为 `0.3.5`；请核对 Release 已发布再安装。本版同时加固共享状态机和 API 边界，不沿用旧版的真实服务验收结论。
+`<40-char-commit>` 用 `v0.3.6` tag 对应完整 SHA；`<profile>` 换成你的 profile（例如 `desktop`、`web`）。本版 `0.3.6` 包含 Pro 优先与免费回退；请核对 Release 已发布再安装。本版也包含 0.3.5 的共享状态机和 API 加固。
 
 ### 从 dsh.pub（收录后推荐）
 
@@ -74,10 +78,10 @@ dsh.pub 会把仓库固定到一个公开 commit 再安装。市场收录与 Git
 ### 从 npm
 
 ```bash
-dsh plugin --profile <profile> add gpt-image-design
+dsh plugin --profile <profile> add gpt-image-design@0.3.6
 ```
 
-安装时建议指定版本 `@0.3.4`，便于复现；`desktop` 与 `web` profile 均受支持。
+安装时固定版本 `@0.3.6`，便于复现；`desktop` 与 `web` profile 均受支持。
 
 ### 启用
 
@@ -220,7 +224,7 @@ gpt_image_design(
 |---|---|---|
 | `rounds` | `3` | 每个主题默认轮次上限（1–10）。 |
 | `designs` | `3` | 每轮生成的方向/图片数（1–6）。 |
-| `model` | `pro` | `web` 通道的 ChatGPT 页面模型：`pro` 或 `thinking`。 |
+| `model` | `prefer-pro` | `web` 通道优先使用可用 Pro，没有才沿用当前模型；`auto` 保留当前选择，指定其他模型须可用。 |
 | `store` | `project` | 记录位置：`project`（仓库 `docs/design`）或 `local`（DSH 本机）。 |
 | `autoStart` | `false` | 设计卡是否跳过点击直接开跑。 |
 | `autoReview` | `true` | capped 后唤醒原会话检查产物。 |
@@ -309,7 +313,7 @@ gpt_image_design(
 | 浏览器 | `web` 通道需要本机 Google Chrome（稳定版） |
 | API | 任意兼容 OpenAI images 参数名的服务 |
 | 平台 | Windows 已验证；macOS/Linux 使用对应的 Chrome 启动路径，未在仓库内声明实测 |
-| 插件版本 | Git `0.3.5`；npm `0.3.4` |
+| 插件版本 | `0.3.6`（渠道回执见 Release 与源码验证记录） |
 
 ## 禁用与卸载
 

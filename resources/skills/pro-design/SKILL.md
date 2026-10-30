@@ -1,6 +1,6 @@
 ---
 name: pro-design
-description: 用 ChatGPT Pro 网页会话或 OpenAI 兼容生图 API 生成设计图与前端代码/HTML demo，产物保存在本地设计面板；只在用户明确要求设计、出图或 demo 时使用。
+description: 用 ChatGPT 网页会话或 OpenAI 兼容生图 API 生成设计图与前端代码/HTML demo，产物保存在本地设计面板；只在用户明确要求设计、出图或 demo 时使用。
 argument-hint: <设计目标>
 display-name: GPT-Image Design
 short-description: Generate images and frontend demos through a web session or image API
@@ -11,6 +11,8 @@ short-description: Generate images and frontend demos through a web session or i
 只在用户明确说「出几张设计图 / 做个前端 demo / 让 ChatGPT 设计」或同意你的提议时启动。纯后端实现、需要跑代码验证的任务不要用。
 
 web 通道与研究插件共用同一个**本机 Chrome profile 和单账号**；一轮只在一个会话里提交，不做多账号并行，也不合并多份答复。
+
+web 模型默认 `prefer-pro`，优先使用可用 Pro，没有才沿用当前模型；禁用、锁定和升级入口不算可用 Pro。显式 `auto` 保留当前选择，指定其他模型仍须核验。图片能力和额度以账号提供为准；旧配置需改为 `prefer-pro` 后新建主题。API 通道仍使用独立的 `imageModel`。
 
 ## 启动：先给设计卡
 
